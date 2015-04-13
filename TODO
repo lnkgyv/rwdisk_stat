@@ -1,0 +1,6 @@
+* fix if at least one command in pipe is empty (broken pipeline)
+* smart check for pipeline
+* redirect
+* base commands
+* PATH variable
+* minimize memory usage
