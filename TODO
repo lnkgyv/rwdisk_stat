@@ -1,6 +1,3 @@
-* fix if at least one command in pipe is empty (broken pipeline)
-* smart check for pipeline
-* redirect
-* base commands
-* PATH variable
-* minimize memory usage
+* organize functions and modules
+* organize parameters as keys
+* orgenize as daemon

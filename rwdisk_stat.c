@@ -3,6 +3,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <string.h>
+#include <pgsql/libpq-fe.h>
 
 #define TRUE            1
 #define MAX_PATH_LENGTH 30
@@ -26,13 +27,32 @@
            exit(EXIT_FAILURE);        \
          }                            \
 
+static void exit_nicely(PGconn *conn){
+  PQfinish(conn);
+  exit(EXIT_FAILURE);
+}
+
 int main(int argc, char *argv[]){
-  FILE *stat;
-  char path[MAX_PATH_LENGTH] = "/sys/block/";
-  char ret;
-  long long past[2], curr[2];
-  time_t curr_time;
-  int interval;
+  long long  past[2];
+  long long  curr[2];
+  char       path[MAX_PATH_LENGTH] = "/sys/block/";
+  char       query[255];
+  FILE       *stat;
+  time_t     curr_time;
+  int        interval;
+  char       ret;
+
+  const char *conninfo;
+  PGconn     *conn;
+  PGresult   *res;
+
+  conninfo = "dbname = monitoring user = watch password = watch";
+  conn = PQconnectdb(conninfo);
+  if(PQstatus(conn) != CONNECTION_OK){
+    fprintf(stderr, "Connection to database failed: %s",
+    PQerrorMessage(conn));
+    exit_nicely(conn);
+  }
 
   if(argc < 3){
     printf("Usage: %s <device_without_path> <interval_in_seconds>\n", argv[0]);
@@ -63,13 +83,27 @@ int main(int argc, char *argv[]){
   ret = fscanf(stat, "%*lld %*lld %lld %*lld %*lld %*lld %lld", past, past + 1);
   check_ret_uni(stat, (FILE *)NULL, "fscanf");
 
-  printf("Time         RKbytes        WKbytes\n");
+  /* For developer needs */
+  /*printf("Time         RKbytes        WKbytes\n");*/
   while(TRUE){
     sleep(interval);
+
+    curr_time = time((time_t *)NULL);
     rewind(stat); /* seek to begin of file */
     ret = fscanf(stat, "%*lld %*lld %lld %*lld %*lld %*lld %lld", curr, curr + 1);
     check_ret_uni(stat, (FILE *)NULL, "fscanf");
-    printf("%lld   %lld              %lld\n", time((time_t *)NULL), (curr[0] - past[0]) * SECTOR_SZ / 1024, (curr[1] - past[1]) * SECTOR_SZ / 1024);
+
+    sprintf(query, "insert into results values(default, to_timestamp(%lld), %lld, %lld, 1)", time((time_t *)NULL), (curr[0] - past[0]) * SECTOR_SZ / 1024, (curr[1] - past[1]) * SECTOR_SZ / 1024);
+
+    res = PQexec(conn, query);
+    if(PQresultStatus(res) != PGRES_COMMAND_OK){
+      fprintf(stderr, "INSERT failed: %s", PQerrorMessage(conn));
+      PQclear(res);
+      exit_nicely(conn);
+    }
+
+    /* For developer needs */
+    /* printf("%lld   %lld              %lld\n", time((time_t *)NULL), (curr[0] - past[0]) * SECTOR_SZ / 1024, (curr[1] - past[1]) * SECTOR_SZ / 1024); */
     past[0] = curr[0];
     past[1] = curr[1];
   }
