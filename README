@@ -1,0 +1,76 @@
+RWDISK_STAT
+======================
+
+I be interested how many data go throught my hard drive.
+SSD have limited resources, but not HDD. Before switch
+to SSD I must analize how many GB, in usualy works, go
+throught my HDD.
+The idea is very simple: with some interval read data
+from '/sys/block/<dev>/stat' and put this info to database.
+Then, with ordinary SQL queries I can analize everything
+that I want.
+
+I know that present at least 'vmstat' and 'iostat' to display
+with some interval this data, but I want one service that
+will start at system startup. Also I don't want this mechanism
+as bash script (cat stat_file|awk <block_to_kb>|sleep <interval>).
+
+INSTALLATION
+***For PostgresSQL intermediate need to be installed 'LIBPQ'.
+Just run 'make' in programm directory.
+'rwdisk_stat' is one executable file.
+'pgsql.cfg' if example parameter file for PostgestDB connect.
+
+Postgres DB_FORMAT:
+DBNAME           = monitoring
+USER/OWNER_OF_DB = watch
+PASS             = watch
+Tables:
+monitoring-> \dt;
+        List of relations
+ Schema |  Name   | Type  | Owner
+--------+---------+-------+-------
+ public | plugins | table | watch
+ public | results | table | watch
+(2 rows)
+Tables format:
+monitoring-> \d plugins;
+                                   Table "public.plugins"
+   Column    |         Type          |                      Modifiers
+-------------+-----------------------+------------------------------------------------------
+ id          | bigint                | not null default nextval('plugins_id_seq'::regclass)
+ name        | character varying(50) |
+ description | text                  |
+Indexes:
+    "plugins_pkey" PRIMARY KEY, btree (id)
+
+monitoring-> \d results;
+                                    Table "public.results"
+  Column  |            Type             |                      Modifiers
+----------+-----------------------------+------------------------------------------------------
+ id       | bigint                      | not null default nextval('results_id_seq'::regclass)
+ rec_date | timestamp without time zone | not null
+ readkb   | bigint                      |
+ writekb  | bigint                      |
+ plug_id  | bigint                      |
+Indexes:
+    "results_pkey" PRIMARY KEY, btree (id)
+
+Some working example:
+monitoring=> select * from results limit 5;
+ id  |      rec_date       | readkb | writekb | plug_id
+-----+---------------------+--------+---------+---------
+ 461 | 2015-04-17 05:05:32 |      0 |     616 |       1
+ 462 | 2015-04-17 05:05:42 |      0 |      44 |       1
+ 463 | 2015-04-17 05:05:52 |    120 |     404 |       1
+ 464 | 2015-04-17 05:06:02 |      0 |     468 |       1
+ 465 | 2015-04-17 05:06:12 |      0 |     120 |       1
+(5 rows)
+
+
+The originaly documentation about stat file:
+https://www.kernel.org/doc/Documentation/block/stat.txt
+
+The originaly documentation about libpq:
+http://www.postgresql.org/docs/9.1/static/libpq.html
+
