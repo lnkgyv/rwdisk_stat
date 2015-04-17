@@ -67,18 +67,13 @@ void deploy_arguments(int argc, char *argv[], char *devpath, char *cfgpath, int 
   /* control cfgpath */
   if(!strcmp(cfgpath,""))
      strcpy(cfgpath, DEF_CFG_PATH);
+  check_path_length(cfgpath, MAX_PATH_LENGTH - 1);
 
   /* set statistic path */
   rindex(devpath, '/') == NULL?devpath:strcpy(devpath, rindex(devpath, '/') + 1);
   /* For developer needs */
   /* printf("%s\n", devpath); */
-  if((strlen(path) + strlen("/stat") + strlen(devpath)) > MAX_PATH_LENGTH - 1){
-    fprintf(stderr, "Path too long. Maybe something wrong?\n");
-    exit(EXIT_FAILURE);
-  }
-  strcat(path, devpath);
-  strcat(path, "/stat");
+  check_path_length(strcat(path, strcat(devpath,"/stat")), MAX_PATH_LENGTH - 1);
   strcpy(devpath, path);
-
 }
 

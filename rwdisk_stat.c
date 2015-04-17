@@ -25,7 +25,7 @@ int main(int argc, char *argv[]){
 
   deploy_arguments(argc, argv, devpath, cfgpath, &interval, &Daemon);
   /* For developer needs */
-  /* printf("Arguments:\n\tdevpath=%s \n\tcfgpath=%s \n\tinterval=%d\n",devpath, cfgpath, interval); */
+  /*printf("Arguments:\n\tdevpath=%s \n\tcfgpath=%s \n\tinterval=%d\n",devpath, cfgpath, interval);*/
 
   if(Daemon){
     ret = daemon(NOCHDIR, NOCLOSE);
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]){
   conn = connect_to_db(cfgpath);
 
   stat = fopen(devpath, "r");
-  check_ret_uni(stat, (FILE *)NULL, "fopen");
+  check_ret_uni(stat, (FILE *)NULL, "fopen statfile");
 
   /* disable buffering needed for seek with buffering*/
   ret = setvbuf(stat, (char *)NULL, _IONBF, 0);

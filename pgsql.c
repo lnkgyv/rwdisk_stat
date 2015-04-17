@@ -14,7 +14,7 @@ PGconn *connect_to_db(char *cfgpath){
   PGconn *conn;
 
   cfgfile = fopen(cfgpath, "r");
-  check_ret_uni(cfgfile, (FILE *)NULL, "fopen");
+  check_ret_uni(cfgfile, (FILE *)NULL, "fopen cfgfile");
 
   /* get connect string */
   while(fgets(buf, LINE_MAX, cfgfile)){

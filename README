@@ -16,8 +16,10 @@ will start at system startup. Also I don't want this mechanism
 as bash script (cat stat_file|awk <block_to_kb>|sleep <interval>).
 
 INSTALLATION
+----------------
 ***For PostgresSQL intermediate need to be installed 'LIBPQ'.
-Just run 'make' in programm directory.
+Just run 'make' in programm directory and after program building
+will compleated run 'make install'.
 'rwdisk_stat' is one executable file.
 'pgsql.cfg' if example parameter file for PostgestDB connect.
 
@@ -56,6 +58,15 @@ monitoring-> \d results;
 Indexes:
     "results_pkey" PRIMARY KEY, btree (id)
 
+USAGE
+----------------
+enable at startup
+systemctl enable rwdisk_stat.service
+start:
+systemctl start rwdist_stat.service
+stop:
+systemctl start rwdist_stat.service
+
 Some working example:
 monitoring=> select * from results limit 5;
  id  |      rec_date       | readkb | writekb | plug_id
@@ -67,7 +78,12 @@ monitoring=> select * from results limit 5;
  465 | 2015-04-17 05:06:12 |      0 |     120 |       1
 (5 rows)
 
+UNINSTALL:
+----------------
+Run 'make deinstall' from installation directory.
 
+DOCUMENTATION
+----------------
 The originaly documentation about stat file:
 https://www.kernel.org/doc/Documentation/block/stat.txt
 

@@ -1,9 +1,18 @@
 #ifndef PARAMS_H
 #define PARAMS_H
 
-#define MAX_PATH_LENGTH  30
+#include <string.h>
+#include <stdio.h>
+
+#define MAX_PATH_LENGTH  255
 #define MAX_QUERY_LENGTH 255
 #define DEF_CFG_PATH     "/etc/adm/rwdisk_stat.conf"
+
+#define check_path_length(parm, max_length)                                                                                \
+             if(strlen(parm) > max_length){                                                                                \
+               fprintf(stderr, "Path "#parm" too long. Maybe something wrong?\n");                                         \
+               exit(EXIT_FAILURE);                                                                                         \
+             }                                                                                                             \
 
 #define call_help()                                                                                                        \
     fprintf(stderr, "\nUsage: %s [OPTION] ... \n", argv[0]);                                                               \
