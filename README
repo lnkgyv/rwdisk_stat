@@ -60,7 +60,9 @@ Indexes:
 
 USAGE
 ----------------
-enable at startup
+update systemd services:
+systemctl daemon-reload
+enable at startup:
 systemctl enable rwdisk_stat.service
 start:
 systemctl start rwdist_stat.service
@@ -80,7 +82,7 @@ monitoring=> select * from results limit 5;
 
 UNINSTALL:
 ----------------
-Run 'make deinstall' from installation directory.
+Run 'make uninstall' from installation directory.
 
 DOCUMENTATION
 ----------------
