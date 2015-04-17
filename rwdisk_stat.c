@@ -11,9 +11,9 @@
 int main(int argc, char *argv[]){
   long long  past[2];
   long long  curr[2];
-  char       devpath[MAX_PATH_LENGTH];
-  char       cfgpath[MAX_PATH_LENGTH];
-  char       query[MAX_QUERY_LENGTH];
+  char       devpath[MAX_PATH_LENGTH] = "";
+  char       cfgpath[MAX_PATH_LENGTH] = "";
+  char       query[MAX_QUERY_LENGTH] = "";
   FILE       *stat;
   time_t     curr_time;
   int        interval;

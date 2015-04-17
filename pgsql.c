@@ -5,10 +5,11 @@
 
 #include "pgsql.h"
 #include "rwdisk_stat.h"
+#include <pgsql/libpq-fe.h>
 
 PGconn *connect_to_db(char *cfgpath){
   char buf[LINE_MAX];
-  char conninfo[MAX_CONNECTION_STRING];
+  char conninfo[MAX_CONNECTION_STRING] = "";
   FILE *cfgfile;
   PGconn *conn;
 
@@ -19,12 +20,11 @@ PGconn *connect_to_db(char *cfgpath){
   while(fgets(buf, LINE_MAX, cfgfile)){
     if(!rindex(buf, '#')){
       /* check connection string legth */
-      if((strlen(buf) - 1 + strlen(conninfo)) > MAX_CONNECTION_STRING){
+      if(strlen(strncat(conninfo, buf, strlen(buf) - 1)) > MAX_CONNECTION_STRING){
         fprintf(stderr, "Connection string is too long. Maybe something wrong...\n");
         exit(EXIT_FAILURE);
       }else{
-      /* concat result string */
-        strncat(conninfo, buf, strlen(buf) - 1); 
+        strcat(conninfo, " ");
       }
     }
     else{
@@ -53,5 +53,7 @@ void insert_to_db(PGconn *conn, char *query){
     PQclear(res);
     exit_nicely(conn);
   }
+
+  PQclear(res);
 }
 
