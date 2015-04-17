@@ -25,5 +25,6 @@ uninstall:
 	rm -f $(DOC_PATH)$(DOC)
 	rm -f $(SYSTEMD_SERVICE_PATH)$(SERVICE)
 	rm -f $(PROG_PATH)$(PROG_NAME)
+	rm -f $(PGCFG_PATH)$(PGCFG)
 	rmdir $(DOC_PATH)
 	rmdir $(PGCFG_PATH)
