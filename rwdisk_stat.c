@@ -3,40 +3,17 @@
 #include <time.h>
 #include <unistd.h>
 #include <string.h>
-#include <pgsql/libpq-fe.h>
 
-#define TRUE            1
-#define MAX_PATH_LENGTH 30
-#define SECTOR_SZ       512
-
-#define check_ret_uni(ret, must, fn)  \
-         if(ret == must){             \
-           perror(#fn);               \
-           exit(EXIT_FAILURE);        \
-         }                            \
-
-#define check_ret_nzero(ret, fn)      \
-         if(ret){                     \
-           perror(#fn);               \
-           exit(EXIT_FAILURE);        \
-         }                            \
-
-#define check_ret_zero(ret, fn)       \
-         if(!ret){                    \
-           perror(#fn);               \
-           exit(EXIT_FAILURE);        \
-         }                            \
-
-static void exit_nicely(PGconn *conn){
-  PQfinish(conn);
-  exit(EXIT_FAILURE);
-}
+#include "rwdisk_stat.h"
+#include "pgsql.h"
+#include "params.h"
 
 int main(int argc, char *argv[]){
   long long  past[2];
   long long  curr[2];
-  char       path[MAX_PATH_LENGTH] = "/sys/block/";
-  char       query[255];
+  char       devpath[MAX_PATH_LENGTH];
+  char       cfgpath[MAX_PATH_LENGTH];
+  char       query[MAX_QUERY_LENGTH];
   FILE       *stat;
   time_t     curr_time;
   int        interval;
@@ -44,39 +21,17 @@ int main(int argc, char *argv[]){
 
   const char *conninfo;
   PGconn     *conn;
-  PGresult   *res;
 
-  conninfo = "dbname = monitoring user = watch password = watch";
-  conn = PQconnectdb(conninfo);
-  if(PQstatus(conn) != CONNECTION_OK){
-    fprintf(stderr, "Connection to database failed: %s",
-    PQerrorMessage(conn));
-    exit_nicely(conn);
-  }
+  deploy_arguments(argc, argv, devpath, cfgpath, &interval);
+  /* For developer needs */
+  /* printf("Arguments:\n\tdevpath=%s \n\tcfgpath=%s \n\tinterval=%d\n",devpath, cfgpath, interval); */
 
-  if(argc < 3){
-    printf("Usage: %s <device_without_path> <interval_in_seconds>\n", argv[0]);
-    printf("Example: %s sda 5\n", argv[0]);
-    exit(EXIT_FAILURE);
-  }
+  conn = connect_to_db(cfgpath);
 
-  if((strlen(path) + strlen("/stat") + strlen(argv[1])) > MAX_PATH_LENGTH - 1){
-    printf("Path too long. Maybe something wrong?\n");
-    exit(EXIT_FAILURE);
-  }
-  strcat(path, argv[1]);
-  strcat(path, "/stat");
-
-  ret = sscanf(argv[2], "%d", &interval);
-  if(!ret || !interval){
-    printf("Interval must be a digital >= 1\n");
-    exit(EXIT_FAILURE);
-  }
-
-  stat = fopen(path, "r");
+  stat = fopen(devpath, "r");
   check_ret_uni(stat, (FILE *)NULL, "fopen");
 
-  /* disable buffering */
+  /* disable buffering needed for seek with buffering*/
   ret = setvbuf(stat, (char *)NULL, _IONBF, 0);
   check_ret_nzero(ret, "setvbuff");
 
@@ -85,6 +40,7 @@ int main(int argc, char *argv[]){
 
   /* For developer needs */
   /*printf("Time         RKbytes        WKbytes\n");*/
+
   while(TRUE){
     sleep(interval);
 
@@ -93,20 +49,19 @@ int main(int argc, char *argv[]){
     ret = fscanf(stat, "%*lld %*lld %lld %*lld %*lld %*lld %lld", curr, curr + 1);
     check_ret_uni(stat, (FILE *)NULL, "fscanf");
 
-    sprintf(query, "insert into results values(default, to_timestamp(%lld), %lld, %lld, 1)", time((time_t *)NULL), (curr[0] - past[0]) * SECTOR_SZ / 1024, (curr[1] - past[1]) * SECTOR_SZ / 1024);
+    sprintf(query, "insert into results values(default, to_timestamp(%lld), %lld, %lld, %lld)", 
+                   time((time_t *)NULL), (curr[0] - past[0]) * SECTOR_SZ / 1024, (curr[1] - past[1]) * SECTOR_SZ / 1024, PLUGIN_ID);
 
-    res = PQexec(conn, query);
-    if(PQresultStatus(res) != PGRES_COMMAND_OK){
-      fprintf(stderr, "INSERT failed: %s", PQerrorMessage(conn));
-      PQclear(res);
-      exit_nicely(conn);
-    }
+    insert_to_db(conn, query);
 
     /* For developer needs */
     /* printf("%lld   %lld              %lld\n", time((time_t *)NULL), (curr[0] - past[0]) * SECTOR_SZ / 1024, (curr[1] - past[1]) * SECTOR_SZ / 1024); */
+
     past[0] = curr[0];
     past[1] = curr[1];
   }
+
+  PQfinish(conn);
 
   ret = fclose(stat);
   check_ret_uni(stat, (FILE *)EOF, "fclose");
