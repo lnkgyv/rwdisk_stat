@@ -17,14 +17,20 @@ int main(int argc, char *argv[]){
   FILE       *stat;
   time_t     curr_time;
   int        interval;
+  char       Daemon = 0;
   char       ret;
 
   const char *conninfo;
   PGconn     *conn;
 
-  deploy_arguments(argc, argv, devpath, cfgpath, &interval);
+  deploy_arguments(argc, argv, devpath, cfgpath, &interval, &Daemon);
   /* For developer needs */
   /* printf("Arguments:\n\tdevpath=%s \n\tcfgpath=%s \n\tinterval=%d\n",devpath, cfgpath, interval); */
+
+  if(Daemon){
+    ret = daemon(NOCHDIR, NOCLOSE);
+    check_ret_uni(ret, -1, "daemon");
+  }
 
   conn = connect_to_db(cfgpath);
 

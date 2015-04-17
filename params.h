@@ -15,6 +15,6 @@
     fprintf(stderr, "Example:\n %s -d /dev/sda -i 5\n\n", argv[0]);                                                        \
 
 /* deploy argumants for main*/
-void deploy_arguments(int argc, char *argv[], char *devpath, char *cfgpath, int *interval);
+void deploy_arguments(int argc, char *argv[], char *devpath, char *cfgpath, int *interval, char *Daemon);
 
 #endif /* PARAMS_H */

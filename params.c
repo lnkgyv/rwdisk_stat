@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "params.h"
 
-void deploy_arguments(int argc, char *argv[], char *devpath, char *cfgpath, int *interval){
+void deploy_arguments(int argc, char *argv[], char *devpath, char *cfgpath, int *interval, char *Daemon){
   int         aflag = 0, /* general flag */
               dflag = 1, /* device flag */
               iflag = 1; /* interval flag */
@@ -35,8 +35,7 @@ void deploy_arguments(int argc, char *argv[], char *devpath, char *cfgpath, int 
                exit(EXIT_SUCCESS);
                break;
       case 'D':
-               fprintf(stdout, "Deamonize...");
-               exit(EXIT_SUCCESS);
+               (*Daemon)++;
                break;
       case ':':
                fprintf(stderr, "Option -%c requires an operand\n", optopt);

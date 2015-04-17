@@ -3,6 +3,10 @@
 
 #define TRUE             1
 #define PLUGIN_ID        1 /* I think about it later */
+#define NOCLOSE          1
+#define NOCHDIR          1
+#define CLOSE            0
+#define CHDIR            0
 #define SECTOR_SZ        512
 
 #define check_ret_uni(ret, must, fn)  \
