@@ -3,7 +3,7 @@ Description=Daemon for counting read/write data to HDD per interval
 After=syslog.target
 
 [Service]
-ExecStart=/home/yurij/develop/monitoring/rwdisk_stat -i 1 -d /dev/sda -c /home/yurij/develop/monitoring/pgsql.cfg -D
+ExecStart=/usr/bin/rwdisk_stat -i 1 -d /dev/sda pgsql.cfg -D
 Type=forking
 
 [Install]
